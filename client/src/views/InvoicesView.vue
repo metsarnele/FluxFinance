@@ -111,31 +111,8 @@ export default {
   name: 'InvoicesView',
   data() {
     return {
-      invoices: [
-        // Sample data for demonstration
-        {
-          id: 1,
-          date: '2025-05-10',
-          description: 'Office supplies',
-          amount: 245.50,
-          customer: 'Office Depot'
-        },
-        {
-          id: 2,
-          date: '2025-05-08',
-          description: 'IT equipment',
-          amount: 1250.00,
-          customer: 'Tech Solutions Inc.'
-        },
-        {
-          id: 3,
-          date: '2025-05-05',
-          description: 'Consulting services',
-          amount: 750.00,
-          customer: 'Business Advisors Ltd.'
-        }
-      ],
-      loading: false,
+      invoices: [],
+      loading: true,
       error: null,
       showModal: false,
       newInvoice: {
@@ -150,46 +127,115 @@ export default {
       }
     }
   },
+  
+  mounted() {
+    this.fetchInvoices();
+  },
   methods: {
+    async fetchInvoices() {
+      this.loading = true;
+      this.error = null;
+      
+      try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          this.error = 'Authentication required';
+          this.loading = false;
+          return;
+        }
+        
+        const response = await fetch('http://localhost:3000/api/invoices', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch invoices');
+        }
+        
+        const data = await response.json();
+        this.invoices = data.map(invoice => ({
+          ...invoice,
+          amount: invoice.totalAmount // Map totalAmount to amount for display
+        }));
+      } catch (err) {
+        console.error('Error fetching invoices:', err);
+        this.error = err.message || 'Failed to load invoices';
+      } finally {
+        this.loading = false;
+      }
+    },
+    
     formatDate(dateString) {
       const date = new Date(dateString);
       return date.toLocaleDateString();
     },
+    
     openNewInvoiceModal() {
       this.showModal = true;
     },
+    
     closeModal() {
       this.showModal = false;
     },
+    
     calculateTotal() {
       const subtotal = this.newInvoice.quantity * this.newInvoice.price;
       const vat = subtotal * (this.newInvoice.vatPercentage / 100);
       return subtotal + vat;
     },
-    saveInvoice() {
-      // In a real application, this would send the data to the server
-      const invoice = {
-        id: this.invoices.length + 1,
-        date: this.newInvoice.date,
-        description: this.newInvoice.description,
-        amount: this.calculateTotal(),
-        customer: 'New Customer'
-      };
-      
-      this.invoices.push(invoice);
-      this.closeModal();
-      
-      // Reset form
-      this.newInvoice = {
-        date: new Date().toISOString().split('T')[0],
-        description: '',
-        quantity: 1,
-        price: 0,
-        paymentMethod: 'bank',
-        currency: 'USD',
-        invoiceNumber: '',
-        vatPercentage: 20
-      };
+    
+    async saveInvoice() {
+      try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          this.error = 'Authentication required';
+          return;
+        }
+        
+        const response = await fetch('http://localhost:3000/api/invoices', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(this.newInvoice)
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to create invoice');
+        }
+        
+        const savedInvoice = await response.json();
+        
+        // Add the new invoice to the list with amount mapped from totalAmount
+        this.invoices.push({
+          ...savedInvoice,
+          amount: savedInvoice.totalAmount
+        });
+        
+        this.closeModal();
+        
+        // Reset form
+        this.newInvoice = {
+          date: new Date().toISOString().split('T')[0],
+          description: '',
+          quantity: 1,
+          price: 0,
+          paymentMethod: 'bank',
+          currency: 'USD',
+          invoiceNumber: '',
+          vatPercentage: 20
+        };
+      } catch (err) {
+        console.error('Error saving invoice:', err);
+        this.error = err.message || 'Failed to save invoice';
+      }
     }
   }
 }

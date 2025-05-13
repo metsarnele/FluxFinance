@@ -41,8 +41,11 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'FluxFinance API is running' });
 });
 
-// Authentication routes
+// Import controllers
 import { login, authenticateToken } from './controllers/authController.js';
+import { createInvoice, getAllInvoices, getInvoiceById } from './controllers/invoiceController.js';
+
+// Authentication routes
 app.post('/api/auth/login', login);
 
 // Protected routes
@@ -57,11 +60,10 @@ app.get('/api/protected/invoices/:id', authenticateToken, (req, res) => {
   });
 });
 
-// Invoice routes placeholder
-app.get('/api/invoices', (req, res) => {
-  // This would be implemented with actual database queries
-  res.json({ message: 'Invoices endpoint placeholder' });
-});
+// Invoice routes
+app.post('/api/invoices', authenticateToken, createInvoice);
+app.get('/api/invoices', authenticateToken, getAllInvoices);
+app.get('/api/invoices/:id', authenticateToken, getInvoiceById);
 
 // Catch-all handler for client-side routing in production
 if (process.env.NODE_ENV === 'production') {

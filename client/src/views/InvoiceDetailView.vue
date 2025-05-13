@@ -8,16 +8,30 @@
       <div class="invoice-header">
         <div class="invoice-info">
           <p><strong>Date:</strong> {{ formatDate(invoice.date) }}</p>
-          <p><strong>Customer:</strong> {{ invoice.customer }}</p>
+          <p><strong>Invoice Number:</strong> {{ invoice.invoiceNumber }}</p>
         </div>
         <div class="invoice-amount">
-          <h3>Total: ${{ invoice.amount.toFixed(2) }}</h3>
+          <h3>Total: ${{ invoice.totalAmount.toFixed(2) }}</h3>
         </div>
       </div>
       
-      <div class="invoice-description">
-        <h4>Description</h4>
-        <p>{{ invoice.description }}</p>
+      <div class="invoice-details">
+        <h4>Details</h4>
+        <div class="detail-row">
+          <p><strong>Description:</strong> {{ invoice.description }}</p>
+        </div>
+        <div class="detail-row">
+          <p><strong>Quantity:</strong> {{ invoice.quantity }}</p>
+          <p><strong>Price:</strong> ${{ invoice.price.toFixed(2) }}</p>
+        </div>
+        <div class="detail-row">
+          <p><strong>Payment Method:</strong> {{ invoice.paymentMethod }}</p>
+          <p><strong>Currency:</strong> {{ invoice.currency }}</p>
+        </div>
+        <div class="detail-row">
+          <p><strong>Subtotal:</strong> ${{ invoice.subtotal.toFixed(2) }}</p>
+          <p><strong>VAT ({{ invoice.vatPercentage }}%):</strong> ${{ invoice.vatAmount.toFixed(2) }}</p>
+        </div>
       </div>
     </div>
   </div>
@@ -50,7 +64,7 @@ export default {
           return
         }
         
-        const response = await fetch(`http://localhost:3000/api/protected/invoices/${this.$route.params.id}`, {
+        const response = await fetch(`http://localhost:3000/api/invoices/${this.$route.params.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -113,9 +127,34 @@ export default {
   font-size: 1.5rem;
 }
 
-.invoice-description {
+.invoice-details {
   background-color: #f8f9fa;
-  padding: 1rem;
+  padding: 1.5rem;
   border-radius: 4px;
+  margin-bottom: 2rem;
+}
+
+.invoice-details h4 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.detail-row p {
+  margin: 0;
 }
 </style>
