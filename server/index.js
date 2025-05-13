@@ -26,11 +26,9 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'FluxFinance API is running' });
 });
 
-// Authentication routes placeholder
-app.post('/api/auth/login', (req, res) => {
-  // This would be implemented with actual authentication logic
-  res.json({ message: 'Authentication endpoint placeholder' });
-});
+// Authentication routes
+import { login } from './controllers/authController.js';
+app.post('/api/auth/login', login);
 
 // Invoice routes placeholder
 app.get('/api/invoices', (req, res) => {

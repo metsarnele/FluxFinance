@@ -87,6 +87,13 @@ The `client/package.json` contains:
 
 ### Testing
 
+#### Test-Driven Development (TDD)
+
+This project follows Test-Driven Development principles:
+1. Write a failing test first
+2. Implement the minimum code to make the test pass
+3. Refactor the code while keeping the tests passing
+
 Run the test suite with:
 ```bash
 bun test
@@ -95,6 +102,11 @@ bun test
 Run specific tests:
 ```bash
 bun test --filter "auth"
+```
+
+Example of running authentication tests:
+```bash
+bun test server/tests/auth.test.js
 ```
 
 ### Building for Production
