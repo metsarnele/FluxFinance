@@ -22,13 +22,40 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // API Routes
+
+// Root route for API information
+app.get('/', (req, res) => {
+  res.json({
+    name: 'FluxFinance API',
+    version: '1.0.0',
+    description: 'Financial management system API',
+    endpoints: [
+      { path: '/api/health', description: 'Health check endpoint' },
+      { path: '/api/auth/login', description: 'Authentication endpoint' },
+      { path: '/api/protected/invoices/:id', description: 'Protected invoice endpoint' }
+    ]
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'FluxFinance API is running' });
 });
 
 // Authentication routes
-import { login } from './controllers/authController.js';
+import { login, authenticateToken } from './controllers/authController.js';
 app.post('/api/auth/login', login);
+
+// Protected routes
+app.get('/api/protected/invoices/:id', authenticateToken, (req, res) => {
+  const invoiceId = req.params.id;
+  res.json({
+    id: invoiceId,
+    description: 'Sample invoice',
+    amount: 100.00,
+    date: new Date().toISOString(),
+    customer: 'Test Customer'
+  });
+});
 
 // Invoice routes placeholder
 app.get('/api/invoices', (req, res) => {
