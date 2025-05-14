@@ -2,39 +2,39 @@
   <div class="sign-in-overlay" aria-labelledby="sign-in-title" role="dialog" aria-modal="true">
     <div class="sign-in-form" role="form">
       <h2 id="sign-in-title">Sign In</h2>
-      
+
       <div v-if="error" class="error-message" role="alert">
         {{ error }}
       </div>
-      
+
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
           <label for="email">Email</label>
-          <input 
-            type="email" 
-            id="email" 
-            v-model="email" 
-            required 
+          <input
+            type="email"
+            id="email"
+            v-model="email"
+            required
             aria-required="true"
             autocomplete="email"
           />
         </div>
-        
+
         <div class="form-group">
           <label for="password">Password</label>
-          <input 
-            type="password" 
-            id="password" 
-            v-model="password" 
-            required 
+          <input
+            type="password"
+            id="password"
+            v-model="password"
+            required
             aria-required="true"
             autocomplete="current-password"
           />
         </div>
-        
+
         <div class="form-actions">
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             :disabled="isLoading"
             aria-busy="isLoading"
           >
@@ -47,6 +47,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'SignInView',
   data() {
@@ -61,35 +63,58 @@ export default {
     async handleSubmit() {
       this.error = ''
       this.isLoading = true
-      
+
       try {
-        const response = await fetch('http://localhost:3000/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
+        console.log('Attempting to sign in with:', { email: this.email, password: '***' });
+
+        try {
+          // Using Axios instead of Fetch
+          const response = await axios.post('http://localhost:3000/api/auth/login', {
             email: this.email,
             password: this.password
-          })
-        })
-        
-        const data = await response.json()
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Email or password is incorrect')
+          }, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }
+          });
+
+          console.log('Response received:', { status: response.status, ok: response.status >= 200 && response.status < 300 });
+
+          const data = response.data;
+          console.log('Response data:', data);
+
+          // Store token in localStorage
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+
+          console.log('Authentication successful, reloading page');
+          // Refresh the page to show the protected content
+          window.location.reload();
+        } catch (axiosError) {
+          console.error('Axios error details:', axiosError);
+          if (axiosError.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            console.error('Response data:', axiosError.response.data);
+            console.error('Response status:', axiosError.response.status);
+            console.error('Response headers:', axiosError.response.headers);
+            throw new Error(axiosError.response.data.error || 'Email or password is incorrect');
+          } else if (axiosError.request) {
+            // The request was made but no response was received
+            console.error('Request made but no response received:', axiosError.request);
+            throw new Error('No response from server. Please check your network connection.');
+          } else {
+            // Something happened in setting up the request that triggered an Error
+            console.error('Error setting up request:', axiosError.message);
+            throw axiosError;
+          }
         }
-        
-        // Store token in localStorage
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('user', JSON.stringify(data.user))
-        
-        // Refresh the page to show the protected content
-        window.location.reload()
       } catch (err) {
-        this.error = err.message || 'Email or password is incorrect'
+        console.error('Login error:', err);
+        this.error = err.message || 'Email or password is incorrect';
       } finally {
-        this.isLoading = false
+        this.isLoading = false;
       }
     }
   }

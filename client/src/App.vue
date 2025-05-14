@@ -40,8 +40,10 @@ export default {
   },
   created() {
     // Check if user is authenticated
-    this.isAuthenticated = !!localStorage.getItem('token');
-    
+    const token = localStorage.getItem('token');
+    this.isAuthenticated = !!token;
+    console.log('Authentication status:', { isAuthenticated: this.isAuthenticated, hasToken: !!token });
+
     // Listen for authentication changes
     window.addEventListener('storage', this.checkAuthentication);
   },
@@ -50,7 +52,21 @@ export default {
   },
   methods: {
     checkAuthentication() {
-      this.isAuthenticated = !!localStorage.getItem('token');
+      const token = localStorage.getItem('token');
+      const wasAuthenticated = this.isAuthenticated;
+      this.isAuthenticated = !!token;
+
+      console.log('Authentication changed:', {
+        wasAuthenticated,
+        isNowAuthenticated: this.isAuthenticated,
+        hasToken: !!token
+      });
+
+      // If authentication status changed, refresh the page to update the UI
+      if (wasAuthenticated !== this.isAuthenticated) {
+        console.log('Authentication status changed, refreshing page');
+        window.location.reload();
+      }
     },
     signOut() {
       localStorage.removeItem('token');
