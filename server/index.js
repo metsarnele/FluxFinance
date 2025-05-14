@@ -3,6 +3,7 @@ import cors from 'cors';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import { initializeDatabase } from './config/database.js';
 
 // Load environment variables
 dotenv.config();
@@ -11,8 +12,22 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Initialize the database
+(async () => {
+  try {
+    await initializeDatabase();
+    console.log('Database initialized successfully');
+  } catch (error) {
+    console.error('Error initializing database:', error);
+  }
+})();
+
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -43,7 +58,7 @@ app.get('/api/health', (req, res) => {
 
 // Import controllers
 import { login, authenticateToken } from './controllers/authController.js';
-import { createInvoice, getAllInvoices, getInvoiceById } from './controllers/invoiceController.js';
+import { createInvoice, getAllInvoices, getInvoiceById, deleteInvoiceById } from './controllers/invoiceDbController.js';
 
 // Authentication routes
 app.post('/api/auth/login', login);
@@ -64,6 +79,7 @@ app.get('/api/protected/invoices/:id', authenticateToken, (req, res) => {
 app.post('/api/invoices', authenticateToken, createInvoice);
 app.get('/api/invoices', authenticateToken, getAllInvoices);
 app.get('/api/invoices/:id', authenticateToken, getInvoiceById);
+app.delete('/api/invoices/:id', authenticateToken, deleteInvoiceById);
 
 // Catch-all handler for client-side routing in production
 if (process.env.NODE_ENV === 'production') {
