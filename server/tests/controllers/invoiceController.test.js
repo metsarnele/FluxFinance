@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
 import { fetch } from 'bun';
-import app from '../index.js';
+import app from '../../index.js';
 
 let server;
 const PORT = 3002; // Different port than auth tests
