@@ -6,6 +6,7 @@
         <nav v-if="isAuthenticated">
           <router-link to="/" class="nav-link">Home</router-link>
           <router-link to="/invoices" class="nav-link">Invoices</router-link>
+          <router-link to="/customers" class="nav-link">Customers</router-link>
           <button @click="signOut" class="sign-out-btn">Sign Out</button>
         </nav>
       </div>

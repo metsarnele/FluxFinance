@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import SignInView from '../views/SignInView.vue'
 import InvoicesView from '../views/InvoicesView.vue'
+import CustomersView from '../views/CustomersView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,6 +27,12 @@ const router = createRouter({
       path: '/invoices/:id',
       name: 'invoice-detail',
       component: () => import('../views/InvoiceDetailView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/customers',
+      name: 'customers',
+      component: CustomersView,
       meta: { requiresAuth: true }
     }
   ]

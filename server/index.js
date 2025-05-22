@@ -32,7 +32,8 @@ app.get('/', (req, res) => {
     endpoints: [
       { path: '/api/health', description: 'Health check endpoint' },
       { path: '/api/auth/login', description: 'Authentication endpoint' },
-      { path: '/api/protected/invoices/:id', description: 'Protected invoice endpoint' }
+      { path: '/api/protected/invoices/:id', description: 'Protected invoice endpoint' },
+      { path: '/api/customers', description: 'Customer management endpoints' }
     ]
   });
 });
@@ -44,6 +45,7 @@ app.get('/api/health', (req, res) => {
 // Import controllers
 import { login, authenticateToken } from './controllers/authController.js';
 import { createInvoice, getAllInvoices, getInvoiceById } from './controllers/invoiceController.js';
+import { customerController } from './controllers/customerController.js';
 
 // Authentication routes
 app.post('/api/auth/login', login);
@@ -64,6 +66,11 @@ app.get('/api/protected/invoices/:id', authenticateToken, (req, res) => {
 app.post('/api/invoices', authenticateToken, createInvoice);
 app.get('/api/invoices', authenticateToken, getAllInvoices);
 app.get('/api/invoices/:id', authenticateToken, getInvoiceById);
+
+// Customer routes
+app.post('/api/customers', authenticateToken, customerController.createCustomer);
+app.get('/api/customers', authenticateToken, customerController.getAllCustomers);
+app.get('/api/customers/:id', authenticateToken, customerController.getCustomerById);
 
 // Catch-all handler for client-side routing in production
 if (process.env.NODE_ENV === 'production') {

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Customer API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Customer API</h1>
+    
+    <div class="form-group">
+        <label for="token">Auth Token:</label>
+        <input type="text" id="token" placeholder="Enter your auth token">
+    </div>
+    
+    <h2>Login</h2>
+    <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" value="user@example.com">
+    </div>
+    
+    <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" value="correctpassword">
+    </div>
+    
+    <button onclick="login()">Login</button>
+    
+    <h2>Create Customer</h2>
+    <div class="form-group">
+        <label for="customerName">Customer Name:</label>
+        <input type="text" id="customerName" placeholder="Enter customer name">
+    </div>
+    
+    <div class="form-group">
+        <label for="customerEmail">Customer Email:</label>
+        <input type="email" id="customerEmail" placeholder="Enter customer email">
+    </div>
+    
+    <div class="form-group">
+        <label for="customerAddress">Customer Address:</label>
+        <textarea id="customerAddress" placeholder="Enter customer address"></textarea>
+    </div>
+    
+    <button onclick="createCustomer()">Create Customer</button>
+    
+    <h2>Get All Customers</h2>
+    <button onclick="getCustomers()">Get Customers</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        const resultDiv = document.getElementById('result');
+        const API_URL = 'http://localhost:3000/api';
+        
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                resultDiv.textContent = 'Logging in...';
+                
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('token').value = data.token;
+                    resultDiv.textContent = 'Login successful! Token has been set.';
+                } else {
+                    resultDiv.textContent = `Login failed: ${data.error || 'Unknown error'}`;
+                }
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        async function createCustomer() {
+            const token = document.getElementById('token').value;
+            const name = document.getElementById('customerName').value;
+            const email = document.getElementById('customerEmail').value;
+            const address = document.getElementById('customerAddress').value;
+            
+            if (!token) {
+                resultDiv.textContent = 'Please login first to get a token';
+                return;
+            }
+            
+            if (!name || !email) {
+                resultDiv.textContent = 'Name and email are required';
+                return;
+            }
+            
+            try {
+                resultDiv.textContent = 'Creating customer...';
+                
+                const response = await fetch(`${API_URL}/customers`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name, email, address })
+                });
+                
+                const responseText = await response.text();
+                
+                resultDiv.textContent = `Response Status: ${response.status}\n\n`;
+                
+                if (responseText) {
+                    try {
+                        const data = JSON.parse(responseText);
+                        resultDiv.textContent += `Response Data: ${JSON.stringify(data, null, 2)}`;
+                    } catch (e) {
+                        resultDiv.textContent += `Raw Response: ${responseText}`;
+                    }
+                } else {
+                    resultDiv.textContent += 'No response body';
+                }
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        async function getCustomers() {
+            const token = document.getElementById('token').value;
+            
+            if (!token) {
+                resultDiv.textContent = 'Please login first to get a token';
+                return;
+            }
+            
+            try {
+                resultDiv.textContent = 'Getting customers...';
+                
+                const response = await fetch(`${API_URL}/customers`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const responseText = await response.text();
+                
+                resultDiv.textContent = `Response Status: ${response.status}\n\n`;
+                
+                if (responseText) {
+                    try {
+                        const data = JSON.parse(responseText);
+                        resultDiv.textContent += `Customers: ${JSON.stringify(data, null, 2)}`;
+                    } catch (e) {
+                        resultDiv.textContent += `Raw Response: ${responseText}`;
+                    }
+                } else {
+                    resultDiv.textContent += 'No response body';
+                }
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
